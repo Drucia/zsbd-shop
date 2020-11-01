@@ -1,34 +1,40 @@
 # zsbd-shop  
-Aleksandra Druciak  
+Aleksandra Druciak
+
 Aleksander Gerasimuk
+
 Tomasz Demczuk
 
 ## Konfiguracja bazy danych
 
 W pliku sql/Configuration.sql znajduje się przykładowa konfiguracja bazy danych dzięki, której można tworzyć tabele dla konkretnego użytkownika.
 
-*Wycinek `Configuration.sql`:*
+*Plik `Configuration.sql`:*
 
 ```sql
-    alter session set "_ORACLE_SCRIPT"=true;  
+alter session set "_ORACLE_SCRIPT"=true;  
 
-    -- USER SQL
+-- USER SQL
 
-    CREATE USER "DRUCIAK" IDENTIFIED BY "szbd"  ;
+CREATE USER "OWNER" IDENTIFIED BY "szbd"  ;
 
-    -- SYSTEM PRIVILEGES
-    GRANT SELECT ANY TABLE TO "DRUCIAK" ;
-    GRANT CREATE TABLE TO "DRUCIAK" ;
-    GRANT DROP ANY TABLE TO "DRUCIAK" ;
-    GRANT ALTER USER TO "DRUCIAK" ;
-    GRANT UPDATE ANY TABLE TO "DRUCIAK" ;
-    GRANT DROP USER TO "DRUCIAK" ;
-    GRANT INSERT ANY TABLE TO "DRUCIAK" ;
-    GRANT CREATE ANY TABLE TO "DRUCIAK" ;
+-- QUOTAS
 
-    ALTER USER DRUCIAK quota unlimited on USERS;
+-- ROLES
 
-    alter session set current_schema = druciak; 
+-- SYSTEM PRIVILEGES
+GRANT SELECT ANY TABLE TO "OWNER" ;
+GRANT CREATE TABLE TO "OWNER" ;
+GRANT DROP ANY TABLE TO "OWNER" ;
+GRANT ALTER USER TO "OWNER" ;
+GRANT UPDATE ANY TABLE TO "OWNER" ;
+GRANT DROP USER TO "OWNER" ;
+GRANT INSERT ANY TABLE TO "OWNER" ;
+GRANT CREATE ANY TABLE TO "OWNER" ;
+
+ALTER USER OWNER quota unlimited on USERS;
+
+alter session set current_schema = owner; 
 ```
 
 ## Wypełnienie bazy danych
