@@ -1,4 +1,9 @@
--- Wstawienie nowej gry i ustalenie jej ceny na podstawie średniej ocen innych gier z tego samego gatunku.
+exec insert_new_game_with_price(4522, null, 'Lorem ipsum', 12, 'gra test', 0, 1, 1);
+
+alter system flush buffer_cache;
+alter system flush shared_pool;
+
+-- Wstawienie nowej gry i ustalenie jej ceny na podstawie Ĺ›redniej ocen innych gier z tego samego gatunku.
 CREATE
 OR REPLACE PROCEDURE insert_new_game_with_price(
     original_price NUMBER,
@@ -9,13 +14,15 @@ OR REPLACE PROCEDURE insert_new_game_with_price(
     multiplayer VARCHAR,
     game_genre_id NUMBER,
     product_type_id NUMBER
-) IS price Float;
+) IS 
+
+price Float;
 
 avg_score Float;
 
-avg_score is
+BEGIN -- get contact based on customer id
 SELECT
-    AVG(r.SCORE)
+    AVG(r.SCORE) into avg_score
 FROM
     Review r
     JOIN Product p ON r.productId = p.ProductID
@@ -24,7 +31,6 @@ WHERE
 
 price := avg_score * 0.1 * original_price + original_price;
 
-BEGIN -- get contact based on customer id
 INSERT INTO
     owner.product (
         currentprice,
@@ -60,11 +66,11 @@ END;
 
 exec insert_new_game_with_price();
 
--- Usunięcie produktów, które 
--- nie sprzedały się od pół roku 
--- lub mają ocenę poniżej score_limit 
--- mając więcej niż 5 wystawionych recenzji 
--- od użytkowników istniejących dłużej niż 2 miesiące.
+-- UsuniÄ™cie produktĂłw, ktĂłre 
+-- nie sprzedaĹ‚y siÄ™ od pĂłĹ‚ roku 
+-- lub majÄ… ocenÄ™ poniĹĽej score_limit 
+-- majÄ…c wiÄ™cej niĹĽ 5 wystawionych recenzji 
+-- od uĹĽytkownikĂłw istniejÄ…cych dĹ‚uĹĽej niĹĽ 2 miesiÄ…ce.
 CREATE
 OR REPLACE PROCEDURE delete_unpopular_products(score_limit NUMBER) IS BEGIN -- get contact based on customer id
 DELETE FROM
@@ -103,10 +109,10 @@ END;
 
 exec delete_unpopular_products(2);
 
--- Zwiększenie ceny product_number najchętniej kupowanych produktów 
--- w ostatnich months miesiącach, 
--- jeżeli ocena tego produktu 
--- jest równa bądź większa niż score.
+-- ZwiÄ™kszenie ceny product_number najchÄ™tniej kupowanych produktĂłw 
+-- w ostatnich months miesiÄ…cach, 
+-- jeĹĽeli ocena tego produktu 
+-- jest rĂłwna bÄ…dĹş wiÄ™ksza niĹĽ score.
 CREATE
 OR REPLACE PROCEDURE increase_products_price(
     product_number NUMBER,
