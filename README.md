@@ -5,6 +5,9 @@ Aleksander Gerasimuk
 
 Tomasz Demczuk
 
+## Export bazy
+[Exportowana baza](https://politechnikawroclawska-my.sharepoint.com/:u:/g/personal/238041_student_pwr_edu_pl/ESiUm7ZiWRFGnC_IaQQRLOMBKzKhg5-K4UtCAclIVER8Ew?e=ZCxlGN)
+
 ## Konfiguracja bazy danych
 
 W pliku sql/Configuration.sql znajduje się przykładowa konfiguracja bazy danych dzięki, której można tworzyć tabele dla konkretnego użytkownika.
