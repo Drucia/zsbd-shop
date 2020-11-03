@@ -5,7 +5,7 @@ from
     JOIN PAYMENT p on i.PaymentID = p.PaymentID
     JOIN Order o on p.PaymentID = o.PaymentID
 where
-    Order.Paid = 0
+    o.Paid = 0
 HAVING
     AVG(p.Cost) < (
         Select

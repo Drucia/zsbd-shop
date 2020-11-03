@@ -1,41 +1,46 @@
-
 -- usuniecie produktow, ktore
 -- nie sprzedaly sie od pol roku
 -- lub maja ocene ponizej score_limit 
 -- majac wiecej niz 5 wystawionych recenzji 
 -- od uzytkownikow istniejacych dluzej niz 2 miesiace
-CREATE
-OR REPLACE PROCEDURE delete_unpopular_products(score_limit NUMBER) IS BEGIN -- get contact based on customer id
-DELETE FROM
-    Products
-WHERE
-    products.productid in (
-        select
-            p.productid
-        from
-            review r
-            join product p on p.productid = r.productid
-            join client c on r.clientid = c.clientid
-        where
-            AVG(r.score) < score_limit
-            and count(r.reviewid) >= 5
-            and c.createddate
-    )
-    or products.productid in (
-        select
-            p.productid
-        from
-            order o
-            JOIN orderdetails d on o.orderid = d.ORDERid
-            join product p on p.productid = d.productid
-        where
-            ADD_MONTHS(o.submissiondate, 6) > CURRENT_DATE
-    );
+CREATE OR REPLACE PROCEDURE delete_unpopular_products (
+    score_limit NUMBER
+) IS
+BEGIN
+    DELETE FROM product
+    WHERE
+        product.productid IN (
+            SELECT
+                p.productid
+            FROM
+                review    r
+                JOIN product   p ON p.productid = r.productid
+                JOIN client    c ON r.clientid = c.clientid
+            WHERE
+                add_months(c.createddate, 2) > current_date
+            GROUP BY
+                p.productid
+            HAVING AVG(r.score) < score_limit
+                   AND COUNT(r.reviewid) >= 5
+        )
+        OR product.productid IN (
+            SELECT
+                p.productid
+            FROM
+                "ORDER"        o
+                JOIN orderdetails   d ON o.orderid = d.orderid
+                JOIN product        p ON p.productid = d.productid
+            WHERE
+                add_months(o.submissiondate, 6) > current_date
+        );
 
+    
+
+   
 -- print out contact's information
-dbms_output.put_line('delete_products finished');
 
+    dbms_output.put_line('delete_products finished');
 EXCEPTION
-WHEN OTHERS THEN dbms_output.put_line(SQLERRM);
-
+    WHEN OTHERS THEN
+        dbms_output.put_line(sqlerrm);
 END;
