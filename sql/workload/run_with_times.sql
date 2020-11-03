@@ -1,50 +1,129 @@
-drop table diff_timestamp;
-create table diff_timestamp(querynumber number, starttime timestamp, endtime timestamp);
+DROP TABLE diff_timestamp;
+
+CREATE TABLE diff_timestamp (
+    querynumber   NUMBER,
+    starttime     TIMESTAMP,
+    endtime       TIMESTAMP
+);
 ----insert into diff_timestamp values(systimestamp-1, systimestamp+2);
 ----select cast(f2 as date) - cast (f1 as date) from diff_timestamp
 --alter session set current_schema = druciak; 
 
 -- select query nb 1
 
-alter system flush buffer_cache;
-alter system flush shared_pool;
+ALTER SYSTEM FLUSH BUFFER_CACHE;
 
-insert into diff_timestamp (querynumber, starttime) values(1, systimestamp);
+ALTER SYSTEM FLUSH SHARED_POOL;
 
-select p.productid, sum(od.quantity) "Liczba zamowien" , case when avg(r.score) is null then 0 else avg(r.score) end "Srednia ocen", sum((
-select count(*)
-from payment
-where paymentid = o.paymentid
-)) / count(o.orderid) "Procent oplaconych zamowien"
-from orderdetails od join product p on od.productid = p.productid left join review r on p.productid = r.productid
-join "ORDER" o on od.orderid = o.orderid
-group by p.productid
-order by sum(od.quantity) DESC, (sum((
-select count(*)
-from payment
-where paymentid = o.paymentid
-)) / count(o.orderid)) DESC, "Srednia ocen" DESC;
+INSERT INTO diff_timestamp (
+    querynumber,
+    starttime
+) VALUES (
+    1,
+    systimestamp
+);
 
-update diff_timestamp 
-set endtime = systimestamp
-where querynumber = 1 and endtime is null;
+SELECT
+    p.productid,
+    SUM(od.quantity) "Liczba zamowien",
+    CASE
+        WHEN AVG(r.score) IS NULL THEN
+            0
+        ELSE
+            AVG(r.score)
+    END "Srednia ocen",
+    SUM((
+        SELECT
+            COUNT(*)
+        FROM
+            payment
+        WHERE
+            paymentid = o.paymentid
+    )) / COUNT(o.orderid) "Procent oplaconych zamowien"
+FROM
+    orderdetails   od
+    JOIN product        p ON od.productid = p.productid
+    LEFT JOIN review         r ON p.productid = r.productid
+    JOIN "ORDER"        o ON od.orderid = o.orderid
+GROUP BY
+    p.productid
+ORDER BY
+    SUM(od.quantity) DESC,
+    ( SUM((
+        SELECT
+            COUNT(*)
+        FROM
+            payment
+        WHERE
+            paymentid = o.paymentid
+    )) / COUNT(o.orderid) ) DESC,
+    "Srednia ocen" DESC;
 
-select querynumber, min(extract (minute from (endtime-starttime))*60 + extract (second from (endtime-starttime))) "MIN", 
-max(extract (minute from (endtime-starttime))*60 + extract (second from (endtime-starttime))) "MAX",
-avg(extract (minute from (endtime-starttime))*60 + extract (second from (endtime-starttime))) "AVG" 
-from diff_timestamp
-group by querynumber;
+UPDATE diff_timestamp
+SET
+    endtime = systimestamp
+WHERE
+    querynumber = 1
+    AND endtime IS NULL;
 
-select * from diff_timestamp;
+SELECT
+    querynumber,
+    MIN(EXTRACT(MINUTE FROM(endtime - starttime)) * 60 + EXTRACT(SECOND FROM(endtime - starttime))) "MIN",
+    MAX(EXTRACT(MINUTE FROM(endtime - starttime)) * 60 + EXTRACT(SECOND FROM(endtime - starttime))) "MAX",
+    AVG(EXTRACT(MINUTE FROM(endtime - starttime)) * 60 + EXTRACT(SECOND FROM(endtime - starttime))) "AVG"
+FROM
+    diff_timestamp
+GROUP BY
+    querynumber;
+
+SELECT
+    *
+FROM
+    diff_timestamp;
 
 -- select query nb 2 - DELETE
-insert into diff_timestamp (querynumber, starttime) values(2, systimestamp);
 
-exec delete_unpopular_products(2);
+INSERT INTO diff_timestamp (
+    querynumber,
+    starttime
+) VALUES (
+    2,
+    systimestamp
+);
 
-update diff_timestamp 
-set endtime = systimestamp
-where querynumber = 2 and endtime is null;
-rollback;
+EXEC delete_unpopular_products(2);
 
-select count(*) from product
+UPDATE diff_timestamp
+SET
+    endtime = systimestamp
+WHERE
+    querynumber = 2
+    AND endtime IS NULL;
+
+ROLLBACK;
+
+SELECT
+    COUNT(*)
+FROM
+    product
+
+-- update 
+
+INSERT INTO diff_timestamp (
+    querynumber,
+    starttime
+) VALUES (
+    3,
+    systimestamp
+);
+
+EXEC update_review_content('% et %');
+
+UPDATE diff_timestamp
+SET
+    endtime = systimestamp
+WHERE
+    querynumber = 3
+    AND endtime IS NULL;
+
+ROLLBACK;
