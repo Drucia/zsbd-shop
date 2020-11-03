@@ -1,19 +1,91 @@
-ALTER TABLE Address ADD CONSTRAINT FKAddressCityID FOREIGN KEY (CityID) REFERENCES City (CityID);
-ALTER TABLE Address ADD CONSTRAINT FKAddressCountryID FOREIGN KEY (CountryID) REFERENCES Country (CountryID);
-ALTER TABLE Address ADD CONSTRAINT FKAddressDistrictID FOREIGN KEY (DistrictID) REFERENCES District (DistritID);
-ALTER TABLE Product ADD CONSTRAINT FKProductMonitorProducerID FOREIGN KEY (MonitorProducerID) REFERENCES MonitorProducer (MonitorProducerID);
-ALTER TABLE Product ADD CONSTRAINT FKProductGameGenreID FOREIGN KEY (GameGenreID) REFERENCES GameGenre (GameGenreID);
-ALTER TABLE Product ADD CONSTRAINT FKProductConsoleProducerID FOREIGN KEY (ConsoleProducerID) REFERENCES ConsoleProducer (ConsoleProducerID);
-ALTER TABLE Product ADD CONSTRAINT FKProductColorID FOREIGN KEY (ColorID) REFERENCES Color (ColorID);
-ALTER TABLE Product ADD CONSTRAINT FKProductProductTypeID FOREIGN KEY (ProductTypeID) REFERENCES ProductType (ProductTypeID);
-ALTER TABLE Client ADD CONSTRAINT FKClientAddressID FOREIGN KEY (AddressID) REFERENCES Address (AddressID);
-ALTER TABLE Review ADD CONSTRAINT FKReviewClientID FOREIGN KEY (ClientID) REFERENCES Client (ClientID);
-ALTER TABLE Review ADD CONSTRAINT FKReviewProductID FOREIGN KEY (ProductID) REFERENCES Product (ProductID);
-ALTER TABLE Payment ADD CONSTRAINT FKPaymentTypeOfPaymentID FOREIGN KEY (TypeOfPaymentID) REFERENCES TypeOfPayment (TypeOfPaymentID);
-ALTER TABLE "ORDER" ADD CONSTRAINT FKOrderAddressID FOREIGN KEY (AddressID) REFERENCES Address (AddressID);
-ALTER TABLE "ORDER" ADD CONSTRAINT FKOrderClientID FOREIGN KEY (ClientID) REFERENCES Client (ClientID);
-ALTER TABLE "ORDER" ADD CONSTRAINT FKOrderOrderStatusID FOREIGN KEY (OrderStatusID) REFERENCES OrderStatus (OrderStatusID);
-ALTER TABLE OrderDetails ADD CONSTRAINT FKOrderDetaiOrderID FOREIGN KEY (OrderID) REFERENCES "ORDER" (OrderID);
-ALTER TABLE OrderDetails ADD CONSTRAINT FKOrderDetaiProductID FOREIGN KEY (ProductID) REFERENCES Product (ProductID);
-ALTER TABLE Invoice ADD CONSTRAINT FKInvoicePaymentID FOREIGN KEY (PaymentID) REFERENCES Payment (PaymentID);
-ALTER TABLE "ORDER" ADD CONSTRAINT FKOrderPaymentID FOREIGN KEY (PaymentID) REFERENCES Payment (PaymentID);
+ALTER TABLE address
+    ADD CONSTRAINT fkaddresscityid FOREIGN KEY ( cityid )
+        REFERENCES city ( cityid );
+
+ALTER TABLE address
+    ADD CONSTRAINT fkaddresscountryid FOREIGN KEY ( countryid )
+        REFERENCES country ( countryid );
+
+ALTER TABLE address
+    ADD CONSTRAINT fkaddressdistrictid FOREIGN KEY ( districtid )
+        REFERENCES district ( distritid );
+
+ALTER TABLE product
+    ADD CONSTRAINT fkproductmonitorproducerid FOREIGN KEY ( monitorproducerid )
+        REFERENCES monitorproducer ( monitorproducerid );
+
+ALTER TABLE product
+    ADD CONSTRAINT fkproductgamegenreid FOREIGN KEY ( gamegenreid )
+        REFERENCES gamegenre ( gamegenreid );
+
+ALTER TABLE product
+    ADD CONSTRAINT fkproductconsoleproducerid FOREIGN KEY ( consoleproducerid )
+        REFERENCES consoleproducer ( consoleproducerid );
+
+ALTER TABLE product
+    ADD CONSTRAINT fkproductcolorid FOREIGN KEY ( colorid )
+        REFERENCES color ( colorid );
+
+ALTER TABLE product
+    ADD CONSTRAINT fkproductproducttypeid FOREIGN KEY ( producttypeid )
+        REFERENCES producttype ( producttypeid );
+
+ALTER TABLE client
+    ADD CONSTRAINT fkclientaddressid FOREIGN KEY ( addressid )
+        REFERENCES address ( addressid );
+
+ALTER TABLE review
+    ADD CONSTRAINT fkreviewclientid FOREIGN KEY ( clientid )
+        REFERENCES client ( clientid );
+
+ALTER TABLE review
+    ADD CONSTRAINT fkreviewproductid FOREIGN KEY ( productid )
+        REFERENCES product ( productid );
+
+ALTER TABLE payment
+    ADD CONSTRAINT fkpaymenttypeofpaymentid FOREIGN KEY ( typeofpaymentid )
+        REFERENCES typeofpayment ( typeofpaymentid );
+
+ALTER TABLE "ORDER"
+    ADD CONSTRAINT fkorderaddressid FOREIGN KEY ( addressid )
+        REFERENCES address ( addressid );
+
+ALTER TABLE "ORDER"
+    ADD CONSTRAINT fkorderclientid FOREIGN KEY ( clientid )
+        REFERENCES client ( clientid );
+
+ALTER TABLE "ORDER"
+    ADD CONSTRAINT fkorderorderstatusid FOREIGN KEY ( orderstatusid )
+        REFERENCES orderstatus ( orderstatusid );
+
+ALTER TABLE orderdetails
+    ADD CONSTRAINT fkorderdetaiorderid FOREIGN KEY ( orderid )
+        REFERENCES "ORDER" ( orderid );
+
+ALTER TABLE orderdetails
+    ADD CONSTRAINT fkorderdetaiproductid FOREIGN KEY ( productid )
+        REFERENCES product ( productid );
+
+ALTER TABLE invoice
+    ADD CONSTRAINT fkinvoicepaymentid FOREIGN KEY ( paymentid )
+        REFERENCES payment ( paymentid );
+
+ALTER TABLE "ORDER"
+    ADD CONSTRAINT fkorderpaymentid FOREIGN KEY ( paymentid )
+        REFERENCES payment ( paymentid );
+
+
+
+ALTER TABLE review DROP CONSTRAINT fkreviewproductid;
+
+ALTER TABLE review
+    ADD CONSTRAINT fkreviewproductid FOREIGN KEY ( productid )
+        REFERENCES product ( productid )
+            ON DELETE CASCADE;
+
+ALTER TABLE orderdetails DROP CONSTRAINT fkorderdetaiproductid;
+
+ALTER TABLE orderdetails
+    ADD CONSTRAINT fkorderdetaiproductid FOREIGN KEY ( productid )
+        REFERENCES product ( productid )
+            ON DELETE CASCADE;
