@@ -65,7 +65,32 @@ insert into diff_timestamp (querynumber, starttime) values(3, systimestamp);
 
 SAVEPOINT halababa3;
 
-EXEC update_review_content('% et %');
+DELETE FROM product
+WHERE
+    product.productid IN (
+        SELECT
+            p.productid
+        FROM
+            review    r
+            JOIN product   p ON p.productid = r.productid
+            JOIN client    c ON r.clientid = c.clientid
+        WHERE
+            add_months(c.createddate, 2) > current_date
+        GROUP BY
+            p.productid
+        HAVING AVG(r.score) < 2
+               AND COUNT(r.reviewid) >= 5
+    )
+    OR product.productid IN (
+        SELECT
+            p.productid
+        FROM
+            "ORDER"        o
+            JOIN orderdetails   d ON o.orderid = d.orderid
+            JOIN product        p ON p.productid = d.productid
+        WHERE
+            add_months(o.submissiondate, 6) > current_date
+    );
 
 ROLLBACK TO SAVEPOINT halababa3;
 
@@ -74,6 +99,7 @@ update diff_timestamp
         where querynumber = 3 and endtime is null;
 
 -----------------------------------------------------------------------------------------------------------------------
+
 alter system flush buffer_cache;
 alter system flush shared_pool;
 
@@ -81,15 +107,287 @@ insert into diff_timestamp (querynumber, starttime) values(4, systimestamp);
 
 SAVEPOINT halababa4;
 
-EXEC delete_unpopular_products(2);
+UPDATE review r
+SET
+    r.content = concat((
+        SELECT
+           concat (p.name, substr(p.description, 0, 5) )
+        FROM
+            product p
+        WHERE
+            p.productid = r.productid
+    ),concat('__--__', r.content));
 
 ROLLBACK TO SAVEPOINT halababa4;
 
 update diff_timestamp 
         set endtime = systimestamp
         where querynumber = 4 and endtime is null;
+		
 -----------------------------------------------------------------------------------------------------------------------
 
+alter system flush buffer_cache;
+alter system flush shared_pool;
+
+insert into diff_timestamp (querynumber, starttime) values(5, systimestamp);
+
+SAVEPOINT halababa5;
+
+INSERT INTO owner.review (
+    content,
+    createdate,
+    clientid,
+    productid,
+    title,
+    imagelink,
+    bought,
+    score
+) VALUES (
+    'Halababa',
+    current_date,
+    (
+        SELECT
+            "idx"
+        FROM
+            (
+                SELECT
+                    r.clientid AS "idx",
+                    AVG(r.score)
+                FROM
+                    review r
+                GROUP BY
+                    r.clientid
+                HAVING
+                    AVG(r.score) > 3
+                ORDER BY
+                    AVG(r.score) DESC
+            )
+        WHERE
+            ROWNUM = 1
+    ),
+    (
+        SELECT
+            *
+        FROM
+            (
+                SELECT
+                    r.productid
+                FROM
+                    review r
+                GROUP BY
+                    r.productid
+                HAVING
+                    AVG(r.score) = (
+                        SELECT
+                            MAX(AVG(score))
+                        FROM
+                            review
+                        GROUP BY
+                            productid
+                    )
+            )
+        WHERE
+            ROWNUM = 1
+    ),
+    (
+        SELECT
+            c.name
+        FROM
+            client c
+        WHERE
+            c.clientid = (
+                SELECT
+                    "idx"
+                FROM
+                    (
+                        SELECT
+                            r.clientid AS "idx",
+                            AVG(r.score)
+                        FROM
+                            review r
+                        GROUP BY
+                            r.clientid
+                        HAVING
+                            AVG(r.score) > 3
+                        ORDER BY
+                            AVG(r.score) DESC
+                    )
+                WHERE
+                    ROWNUM = 1
+            )
+    ),
+    '',
+    (
+        SELECT
+            *
+        FROM
+            (
+                SELECT
+                    CASE
+                        WHEN (
+                            SELECT
+                                *
+                            FROM
+                                (
+                                    SELECT
+                                        c.clientid
+                                    FROM
+                                        client c
+                                    WHERE
+                                        c.clientid = (
+                                            SELECT
+                                                "idx"
+                                            FROM
+                                                (
+                                                    SELECT
+                                                        r.clientid AS "idx",
+                                                        AVG(r.score)
+                                                    FROM
+                                                        review r
+                                                    GROUP BY
+                                                        r.clientid
+                                                    HAVING
+                                                        AVG(r.score) > 3
+                                                    ORDER BY
+                                                        AVG(r.score) DESC
+                                                )
+                                            WHERE
+                                                ROWNUM = 1
+                                        )
+                                )
+                        ) IN (
+                            SELECT DISTINCT
+                                r.clientid
+                            FROM
+                                     review r
+                                JOIN product p ON r.productid = p.productid
+                            WHERE
+                                p.productid IN (
+                                    SELECT
+                                        od.productid
+                                    FROM
+                                             "ORDER" o
+                                        JOIN orderdetails od ON o.orderid = od.orderid
+                                    WHERE
+                                        o.clientid = r.clientid
+                                )
+                        ) THEN
+                            1
+                        ELSE
+                            0
+                    END "bout"
+                FROM
+                    review
+            )
+        WHERE
+            ROWNUM = 1
+    ),
+        ( SELECT
+    *
+FROM
+    (
+        SELECT
+            Round(AVG(r.score), 2)
+        FROM
+            review r
+        GROUP BY
+            r.clientid
+        HAVING
+            AVG(r.score) > 3
+        ORDER BY
+            AVG(r.score) DESC
+    )
+WHERE
+    ROWNUM = 1
+)
+);
+
+ROLLBACK TO SAVEPOINT halababa5;
+
+update diff_timestamp 
+        set endtime = systimestamp
+        where querynumber = 5 and endtime is null;
+
+-----------------------------------------------------------------------------------------------------------------------
+
+alter system flush buffer_cache;
+alter system flush shared_pool;
+
+insert into diff_timestamp (querynumber, starttime) values(6, systimestamp);
+
+SAVEPOINT halababa6;
+
+        SELECT
+            *
+        FROM
+            (
+                SELECT
+                    CASE
+                        WHEN (
+                            SELECT
+                                *
+                            FROM
+                                (
+                                    SELECT
+                                        c.clientid
+                                    FROM
+                                        client c
+                                    WHERE
+                                        c.clientid = (
+                                            SELECT
+                                                "idx"
+                                            FROM
+                                                (
+                                                    SELECT
+                                                        r.clientid AS "idx",
+                                                        AVG(r.score)
+                                                    FROM
+                                                        review r
+                                                    GROUP BY
+                                                        r.clientid
+                                                    HAVING
+                                                        AVG(r.score) > 3
+                                                    ORDER BY
+                                                        AVG(r.score) DESC
+                                                )
+                                            WHERE
+                                                ROWNUM = 1
+                                        )
+                                )
+                        ) IN (
+                            SELECT DISTINCT
+                                r.clientid
+                            FROM
+                                     review r
+                                JOIN product p ON r.productid = p.productid
+                            WHERE
+                                p.productid IN (
+                                    SELECT
+                                        od.productid
+                                    FROM
+                                             "ORDER" o
+                                        JOIN orderdetails od ON o.orderid = od.orderid
+                                    WHERE
+                                        o.clientid = r.clientid
+                                )
+                        ) THEN
+                            1
+                        ELSE
+                            0
+                    END "bout"
+                FROM
+                    review
+            )
+        WHERE
+            ROWNUM = 1
+;
+
+ROLLBACK TO SAVEPOINT halababa6;
+
+update diff_timestamp 
+        set endtime = systimestamp
+        where querynumber = 6 and endtime is null;
+-----------------------------------------------------------------------------------------------------------------------
 select querynumber, 
         min(extract (minute from (endtime-starttime))*60 + extract (second from (endtime-starttime))) "MIN", 
         max(extract (minute from (endtime-starttime))*60 + extract (second from (endtime-starttime))) "MAX",
