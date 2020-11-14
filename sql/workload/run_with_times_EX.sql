@@ -10,7 +10,7 @@ alter system flush shared_pool;
 
 insert into diff_timestamp (querynumber, starttime) values(1, systimestamp);
 
-SAVEPOINT halababa;
+SAVEPOINT savepoint1;
 
 select DISTINCT r.clientid 
     from review r join product p 
@@ -21,7 +21,7 @@ select DISTINCT r.clientid
         on o.orderid = od.orderid 
         where o.clientid = r.clientid) ;
 
-ROLLBACK TO SAVEPOINT halababa;
+ROLLBACK TO SAVEPOINT savepoint1;
 
 update diff_timestamp 
         set endtime = systimestamp
@@ -34,7 +34,7 @@ alter system flush shared_pool;
 
 insert into diff_timestamp (querynumber, starttime) values(2, systimestamp);
 
-SAVEPOINT halababa2;
+SAVEPOINT savepoint2;
 
 select p.productid, sum(od.quantity) "Liczba zamowien" , case when avg(r.score) is null then 0 else avg(r.score) end "Srednia ocen", sum((
 select count(*)
@@ -50,7 +50,7 @@ from payment
 where paymentid = o.paymentid
 )) / count(o.orderid)) DESC, "Srednia ocen" DESC;
 
-ROLLBACK TO SAVEPOINT halababa2;
+ROLLBACK TO SAVEPOINT savepoint2;
 
 update diff_timestamp 
         set endtime = systimestamp
@@ -63,7 +63,7 @@ alter system flush shared_pool;
 
 insert into diff_timestamp (querynumber, starttime) values(3, systimestamp);
 
-SAVEPOINT halababa3;
+SAVEPOINT savepoint3;
 
 DELETE FROM product
 WHERE
@@ -92,7 +92,7 @@ WHERE
             add_months(o.submissiondate, 6) > current_date
     );
 
-ROLLBACK TO SAVEPOINT halababa3;
+ROLLBACK TO SAVEPOINT savepoint3;
 
 update diff_timestamp 
         set endtime = systimestamp
@@ -105,7 +105,7 @@ alter system flush shared_pool;
 
 insert into diff_timestamp (querynumber, starttime) values(4, systimestamp);
 
-SAVEPOINT halababa4;
+SAVEPOINT savepoint4;
 
 UPDATE review r
 SET
@@ -118,7 +118,7 @@ SET
             p.productid = r.productid
     ),concat('__--__', r.content));
 
-ROLLBACK TO SAVEPOINT halababa4;
+ROLLBACK TO SAVEPOINT savepoint4;
 
 update diff_timestamp 
         set endtime = systimestamp
@@ -131,7 +131,7 @@ alter system flush shared_pool;
 
 insert into diff_timestamp (querynumber, starttime) values(5, systimestamp);
 
-SAVEPOINT halababa5;
+SAVEPOINT savepoint5;
 
 INSERT INTO owner.review (
     content,
@@ -143,7 +143,7 @@ INSERT INTO owner.review (
     bought,
     score
 ) VALUES (
-    'Halababa',
+    'savepoint',
     current_date,
     (
         SELECT
@@ -302,7 +302,7 @@ WHERE
 )
 );
 
-ROLLBACK TO SAVEPOINT halababa5;
+ROLLBACK TO SAVEPOINT savepoint5;
 
 update diff_timestamp 
         set endtime = systimestamp
@@ -315,7 +315,7 @@ alter system flush shared_pool;
 
 insert into diff_timestamp (querynumber, starttime) values(6, systimestamp);
 
-SAVEPOINT halababa6;
+SAVEPOINT savepoint6;
 
         SELECT
             *
@@ -382,7 +382,7 @@ SAVEPOINT halababa6;
             ROWNUM = 1
 ;
 
-ROLLBACK TO SAVEPOINT halababa6;
+ROLLBACK TO SAVEPOINT savepoint6;
 
 update diff_timestamp 
         set endtime = systimestamp
