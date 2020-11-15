@@ -75,7 +75,7 @@ WHERE
             JOIN product   p ON p.productid = r.productid
             JOIN client    c ON r.clientid = c.clientid
         WHERE
-            add_months(c.createddate, 2) > current_date
+            add_months(c.createddate, 2) > current_date -- kandydat na funkcyjne idx
         GROUP BY
             p.productid
         HAVING AVG(r.score) < 2
@@ -89,7 +89,7 @@ WHERE
             JOIN orderdetails   d ON o.orderid = d.orderid
             JOIN product        p ON p.productid = d.productid
         WHERE
-            add_months(o.submissiondate, 6) > current_date
+            add_months(o.submissiondate, 6) > current_date -- kandydat na funkcyjne idx
     );
 
 ROLLBACK TO SAVEPOINT savepoint3;
