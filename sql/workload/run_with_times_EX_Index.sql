@@ -7,9 +7,13 @@ create table EXECUTIONTIME(
 alter system flush buffer_cache;
 alter system flush shared_pool;
 
-insert into EXECUTIONTIME (querynumber, starttime) values(5, systimestamp);
+insert into EXECUTIONTIME (querynumber, starttime) values(3, systimestamp);
 
-SAVEPOINT savepoint5;
+
+SAVEPOINT savepoint3;
+
+CREATE INDEX months_f_index_order ON "ORDER" o (add_months(o.submissiondate, 6));
+CREATE INDEX months_f_index_client ON client c (add_months(c.createddate, 2));
 
 DELETE FROM product
 WHERE
@@ -38,19 +42,24 @@ WHERE
             add_months(o.submissiondate, 6) > current_date
     );
 
-ROLLBACK TO SAVEPOINT savepoint5;
+ROLLBACK TO SAVEPOINT savepoint3;
 
 update EXECUTIONTIME 
         set endtime = systimestamp
-        where querynumber = 5 and endtime is null;
+        where querynumber = 3 and endtime is null;
 
 -----------------------------------------------------------------------------------------------------------------------
 alter system flush buffer_cache;
 alter system flush shared_pool;
 
-insert into EXECUTIONTIME (querynumber, starttime) values(1, systimestamp);
+insert into EXECUTIONTIME (querynumber, starttime) values(6, systimestamp);
 
-SAVEPOINT savepoint1;
+SAVEPOINT savepoint6;
+
+CREATE INDEX companyname_btree_index ON client(COMPANYNAME);
+CREATE INDEX companyname_bit_index ON client(COMPANYNAME);
+CREATE INDEX submissiondate_f_index_order ON "ORDER" o (o.submissiondate - 60);
+
 
 select c.clientid, co.name
 from (("ORDER" o join client c on o.clientid = c.clientid) join orderdetails od on o.orderid = od.orderid)
@@ -65,20 +74,22 @@ or cl.companyname = 'Voomm' -- index bit mapa
 )
 order by co.name desc;
 
-ROLLBACK TO SAVEPOINT savepoint1;
+ROLLBACK TO SAVEPOINT savepoint6;
 
 update EXECUTIONTIME 
         set endtime = systimestamp
-        where querynumber = 1 and endtime is null;
+        where querynumber = 6 and endtime is null;
 
 -----------------------------------------------------------------------------------------------------------------------
 
 alter system flush buffer_cache;
 alter system flush shared_pool;
 
-insert into EXECUTIONTIME (querynumber, starttime) values(2, systimestamp);
+insert into EXECUTIONTIME (querynumber, starttime) values(7, systimestamp);
 
-SAVEPOINT savepoint2;
+SAVEPOINT savepoint7;
+
+CREATE INDEX paid_bit_index ON "ORDER"(paid);
 
 select p.productid, sum(od.quantity) "Liczba zamowien" , case when avg(r.score) is null then 0 else avg(r.score) end "Srednia ocen", sum((
 select count(*)
@@ -95,223 +106,14 @@ from payment
 where paymentid = o.paymentid
 )) / count(o.orderid)) DESC, "Srednia ocen" DESC;
 
-ROLLBACK TO SAVEPOINT savepoint2;
+ROLLBACK TO SAVEPOINT savepoint7;
 
 update EXECUTIONTIME 
         set endtime = systimestamp
-        where querynumber = 2 and endtime is null;
+        where querynumber = 7 and endtime is null;
 
 -----------------------------------------------------------------------------------------------------------------------
 
-alter system flush buffer_cache;
-alter system flush shared_pool;
-
-insert into EXECUTIONTIME (querynumber, starttime) values(3, systimestamp);
-
-SAVEPOINT savepoint3;
-
-INSERT INTO review (
-    content,
-    createdate,
-    clientid,
-    productid,
-    title,
-    imagelink,
-    bought,
-    score
-) VALUES (
-    'savepoint',
-    current_date,
-    (
-        SELECT
-            "idx"
-        FROM
-            (
-                SELECT
-                    r.clientid AS "idx",
-                    AVG(r.score)
-                FROM
-                    review r
-                GROUP BY
-                    r.clientid
-                HAVING
-                    AVG(r.score) > 3
-                ORDER BY
-                    AVG(r.score) DESC
-            )
-        WHERE
-            ROWNUM = 1
-    ),
-    (
-        SELECT
-            *
-        FROM
-            (
-                SELECT
-                    r.productid
-                FROM
-                    review r
-                GROUP BY
-                    r.productid
-                HAVING
-                    AVG(r.score) = (
-                        SELECT
-                            MAX(AVG(score))
-                        FROM
-                            review
-                        GROUP BY
-                            productid
-                    )
-            )
-        WHERE
-            ROWNUM = 1
-    ),
-    (
-        SELECT
-            c.name
-        FROM
-            client c
-        WHERE
-            c.clientid = (
-                SELECT
-                    "idx"
-                FROM
-                    (
-                        SELECT
-                            r.clientid AS "idx",
-                            AVG(r.score)
-                        FROM
-                            review r
-                        GROUP BY
-                            r.clientid
-                        HAVING
-                            AVG(r.score) > 3
-                        ORDER BY
-                            AVG(r.score) DESC
-                    )
-                WHERE
-                    ROWNUM = 1
-            )
-    ),
-    '',
-    (
-        SELECT
-            *
-        FROM
-            (
-                SELECT
-                    CASE
-                        WHEN (
-                            SELECT
-                                *
-                            FROM
-                                (
-                                    SELECT
-                                        c.clientid
-                                    FROM
-                                        client c
-                                    WHERE
-                                        c.clientid = (
-                                            SELECT
-                                                "idx"
-                                            FROM
-                                                (
-                                                    SELECT
-                                                        r.clientid AS "idx",
-                                                        AVG(r.score)
-                                                    FROM
-                                                        review r
-                                                    GROUP BY
-                                                        r.clientid
-                                                    HAVING
-                                                        AVG(r.score) > 3
-                                                    ORDER BY
-                                                        AVG(r.score) DESC
-                                                )
-                                            WHERE
-                                                ROWNUM = 1
-                                        )
-                                )
-                        ) IN (
-                            SELECT DISTINCT
-                                r.clientid
-                            FROM
-                                     review r
-                                JOIN product p ON r.productid = p.productid
-                            WHERE
-                                p.productid IN (
-                                    SELECT
-                                        od.productid
-                                    FROM
-                                             "ORDER" o
-                                        JOIN orderdetails od ON o.orderid = od.orderid
-                                    WHERE
-                                        o.clientid = r.clientid or o.orderstatusid >= 3
-                                )
-                        ) THEN
-                            1
-                        ELSE
-                            0
-                    END "bout"
-                FROM
-                    review
-            )
-        WHERE
-            ROWNUM = 1
-    ),
-        ( SELECT
-    *
-FROM
-    (
-        SELECT
-            Round(AVG(r.score), 2)
-        FROM
-            review r
-        GROUP BY
-            r.clientid
-        HAVING
-            AVG(r.score) > 3
-        ORDER BY
-            AVG(r.score) DESC
-    )
-WHERE
-    ROWNUM = 1
-)
-);
-
-ROLLBACK TO SAVEPOINT savepoint3;
-
-update EXECUTIONTIME 
-        set endtime = systimestamp
-        where querynumber = 3 and endtime is null;
-
------------------------------------------------------------------------------------------------------------------------
-
-alter system flush buffer_cache;
-alter system flush shared_pool;
-
-insert into EXECUTIONTIME (querynumber, starttime) values(4, systimestamp);
-
-SAVEPOINT savepoint4;
-
-select DISTINCT r.clientid, c.createddate
-    from (review r join product p 
-    on r.productid = p.productid) join client c on r.clientid = c.clientid
-    where p.productid not in (
-        select od.productid
-        from "ORDER" o join orderdetails od 
-        on o.orderid = od.orderid 
-        where o.clientid = r.clientid)
-    and r.createdate >= c.createddate - 31 and c.blocked = 0
-    order by c.createddate desc;
-
-ROLLBACK TO SAVEPOINT savepoint4;
-
-update EXECUTIONTIME 
-        set endtime = systimestamp
-        where querynumber = 4 and endtime is null;
-		
------------------------------------------------------------------------------------------------------------------------
 select querynumber, 
         min(extract (minute from (endtime-starttime))*60 + extract (second from (endtime-starttime))) "MIN", 
         max(extract (minute from (endtime-starttime))*60 + extract (second from (endtime-starttime))) "MAX",
