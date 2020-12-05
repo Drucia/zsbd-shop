@@ -9,5 +9,5 @@ CREATE TABLE Review (
   ClientID   number(10) NOT NULL, 
   ProductID  number(10) NOT NULL, 
   PRIMARY KEY (ReviewID))
-  PARTITION BY HASH (ProductID)
-  PARTITIONS 4;
+  PARTITION BY HASH (ReviewID)
+   PARTITIONS 4;
