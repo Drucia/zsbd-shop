@@ -2,6 +2,10 @@ Create Tablespace ssd
 datafile 'd:\\oracle\\ssd-order-details.dbf'
 size 100M autoextend on next 10M
 
+Create Tablespace hdd
+datafile 'e:\\oracle\\hdd-order-details.dbf'
+size 100M autoextend on next 10M
+
 CREATE TABLE OrderDetails (
   OrderDetailsID number(10) GENERATED AS IDENTITY, 
   Quantity       number(10) NOT NULL, 
